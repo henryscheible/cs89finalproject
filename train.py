@@ -1,3 +1,4 @@
+import os
 import torch
 from torch import nn, optim
 from torch.utils.data import DataLoader
@@ -7,6 +8,8 @@ import random
 import copy
 import math
 import matplotlib.pyplot as plt
+import argparse
+from tqdm import tqdm
 
 # train the model for one epoch on the given dataset
 def train(model, device, train_loader, criterion, optimizer):
@@ -97,17 +100,18 @@ def make_model(nchannels, nunits, nclasses, checkpoint=None):
 
 
 
-def main():
+def main(args):
     # define the parameters to train your model
     datadir = 'datasets'  # the directory of the dataset
-    nchannels = 3
-    nclasses = 10
-    nunits = 256
-    lr = 0.001 
-    mt = 0.9
-    batchsize = 64
-    epochs = 25
-    stopcond = 0.01
+    nchannels = args.nchannels
+    nclasses = args.nclasses
+
+    nunits = args.nunits
+    lr = args.lr
+    mt = args.mt
+    batchsize = args.batchsize
+    epochs = args.epochs
+    stopcond = args.stopcond
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     kwargs = {'num_workers': 1, 'pin_memory': True} if device else {}
@@ -130,14 +134,14 @@ def main():
     # training the model
     val_losses = []
     best_acc=0
-    checkpoint_path='model1.pt'
-    for epoch in range(0, epochs):
+    checkpoint_path=args.checkpoint_path
+    for epoch in tqdm(range(0, epochs)):
         train_acc, train_loss = train(model, device, train_loader, criterion, optimizer)# Training
         val_acc, val_loss =  validate(model, device, val_loader, criterion)# Validation
         val_losses.append(val_loss)
 
-        print(f'Epoch: {epoch + 1}/{epochs}\t Training loss: {train_loss:.3f}   Training accuracy: {train_acc:.3f}   ',
-              f'Validation accuracy: {val_acc:.3f}')
+        # print(f'Epoch: {epoch + 1}/{epochs}\t Training loss: {train_loss:.3f}   Training accuracy: {train_acc:.3f}   ',
+        #       f'Validation accuracy: {val_acc:.3f}')
 
         
         is_best = val_acc > best_acc
@@ -158,24 +162,48 @@ def main():
     train_acc, train_loss = validate(model, device, train_loader, criterion)
     val_acc, val_loss = validate(model, device, val_loader, criterion)
 
-    plt.figure(figsize=(12, 5))
+    # plt.figure(figsize=(12, 5))
 
-    plt.subplot(1, 2, 1)
-    plt.plot(val_losses, label='Validation Loss')
-    plt.title('Validation Loss')
-    plt.xlabel('Epoch')
-    plt.ylabel('Loss')
-    plt.legend()
+    # plt.subplot(1, 2, 1)
+    # plt.plot(val_losses, label='Validation Loss')
+    # plt.title('Validation Loss')
+    # plt.xlabel('Epoch')
+    # plt.ylabel('Loss')
+    # plt.legend()
 
-    plt.show()
+    # plt.show()
 
-    print(f'=================== Summary ===================\n',
-          f'Training loss: {train_loss:.3f}   Validation loss {val_loss:.3f}   ',
-          f'Training accuracy: {train_acc:.3f}   Validation accuracy: {val_acc:.3f}\n')
+    # print(f'=================== Summary ===================\n',
+    #       f'Training loss: {train_loss:.3f}   Validation loss {val_loss:.3f}   ',
+    #       f'Training accuracy: {train_acc:.3f}   Validation accuracy: {val_acc:.3f}\n')
+    
+    metrics = {
+        "train_acc": train_acc,
+        "train_loss": train_loss,
+        "val_acc": val_acc,
+        "val_loss": val_loss
+    }
+
+    return metrics
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument('--epochs', type=int, default=25)
+    parser.add_argument('--batchsize', type=int, default=64)
+    parser.add_argument('--lr', type=float, default=0.01)
+    parser.add_argument('--datadir', type=str, default="datasets")
+    parser.add_argument('--nchannels', type=int, default=3)
+    parser.add_argument('--nclasses', type=int, default=10)
+    parser.add_argument('--nunits', type=int, default=256)
+    parser.add_argument('--mt', type=float, default=0.9)
+    parser.add_argument('--stopcond', type=float, default=0.01)
+    parser.add_argument('--checkpoint-path', type=str, default="./models/model_test.pt")
+
+    args = parser.parse_args()
+
     torch.manual_seed(0)
     np.random.seed(0)
     random.seed(0)
-    main()
+    main(args)

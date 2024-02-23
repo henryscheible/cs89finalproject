@@ -1,0 +1,14 @@
+name: cs89finalproject
+channels:
+  - pytorch
+  - conda-forge
+dependencies:
+  - pytorch::pytorch=2.2.1
+  - torchvision
+  - torchaudio
+  - numpy
+  - ipykernel
+  - matplotlib
+  - pandas
+  - tqdm
+
