@@ -1,6 +1,5 @@
 import torch
 import matplotlib.pyplot as plt
-from train import make_model
 
 def show_spec_density(weight_layer_name, weight_matrix, fig, axs, i=0,):
     # Compute the singular value decomposition
@@ -11,9 +10,9 @@ def show_spec_density(weight_layer_name, weight_matrix, fig, axs, i=0,):
     # Plot the singular values
 
     axs[i].hist(singular_values)
-    plt.title(f'Singular values for {weight_layer_name}')
-    plt.xlabel('Singular Value')
-    plt.ylabel('Freq.')
+    axs[i].set_title(f'Empirical Spectral Density for layer {weight_layer_name}')
+    axs[i].set_xlabel('Singular Value')
+    axs[i].set_ylabel('Freq.')
     # plt.show()
 
 def show_all_spec_density(weight_dict):
@@ -25,7 +24,6 @@ def show_all_spec_density(weight_dict):
         show_spec_density(k, v, fig, axs, weight_idx)
         weight_idx+=1
     plt.show()
-
 
 
 if __name__ == "__main__":
