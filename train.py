@@ -10,6 +10,7 @@ import math
 import matplotlib.pyplot as plt
 import argparse
 from collections import OrderedDict
+from tqdm import tqdm
 
 # train the model for one epoch on the given dataset
 def train(model, device, train_loader, criterion, optimizer, l1_lambda):
@@ -17,7 +18,7 @@ def train(model, device, train_loader, criterion, optimizer, l1_lambda):
 
     # switch to train mode
     model.train()
-    for data, target in train_loader:
+    for data, target in tqdm(train_loader):
         data, target = data.to(device).view(data.size(0), -1), target.to(device)
 
         # compute the output
@@ -52,7 +53,7 @@ def validate(model, device, val_loader, criterion):
     # switch to evaluation mode
     model.eval()
     with torch.no_grad():
-        for data, target in val_loader:
+        for data, target in tqdm(val_loader):
             data, target = data.to(device).view(data.size(0), -1), target.to(device)
 
             # compute the output
@@ -74,8 +75,8 @@ def load_cifar10_data(split, datadir):
     # Data Normalization and Augmentation (random cropping and horizontal flipping)
     # The mean and standard deviation of the CIFAR-10 dataset: mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
     train_transform = transforms.Compose([
-        transforms.RandomResizedCrop(size=32),
         transforms.RandomHorizontalFlip(p=0.5),
+        transforms.RandomVerticalFlip(p=0.5),
         transforms.ToTensor(),
         transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
     ])
@@ -174,7 +175,7 @@ def main(args):
     print(f"Running dropout where prob of dropout is {dropout_p}")
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    kwargs = {'num_workers': 0, 'pin_memory': True} if device else {}
+    kwargs = {'num_workers': 0} if device else {}
 
     # create an initial model; do a check to see if we are ensuring the rank of all weight matricies <= k
     if args.rank_constraint > 0:
