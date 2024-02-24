@@ -9,11 +9,10 @@ import copy
 import math
 import matplotlib.pyplot as plt
 import argparse
-from tqdm import tqdm
 from collections import OrderedDict
 
 # train the model for one epoch on the given dataset
-def train(model, device, train_loader, criterion, optimizer):
+def train(model, device, train_loader, criterion, optimizer, reg):
     sum_loss, sum_correct = 0, 0
 
     # switch to train mode
@@ -32,6 +31,14 @@ def train(model, device, train_loader, criterion, optimizer):
 
         # compute the gradient and do an SGD step
         optimizer.zero_grad()
+
+        if reg == "l1":
+            l1_lambda = 0.01
+            l1_reg = torch.tensor(0., requires_grad=True)
+            for param in model.parameters():
+                l1_reg = l1_reg + torch.norm(param, 1)
+            loss = loss + l1_lambda * l1_reg
+        
         loss.backward()
         optimizer.step()
 
@@ -83,7 +90,6 @@ def load_cifar10_data(split, datadir):
         dataset = datasets.CIFAR10(root=datadir, train=True, download=True, transform=train_transform)
     else:
         dataset = datasets.CIFAR10(root=datadir, train=False, download=True, transform=val_transform)
-
     return dataset
 
 # define a fully connected neural network with a single hidden layer
@@ -159,6 +165,10 @@ def main(args):
     batchsize = args.batchsize
     epochs = args.epochs
     stopcond = args.stopcond
+    reg = args.reg
+
+    weight_decay = 0.01 if reg == "l2" else 0
+    print(f"weight decay of {weight_decay}")
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     kwargs = {'num_workers': 1, 'pin_memory': True} if device else {}
@@ -175,7 +185,7 @@ def main(args):
 
     # define loss function (criterion) and optimizer
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.SGD(model.parameters(), lr=lr, momentum=mt)
+    optimizer = optim.SGD(model.parameters(), lr=lr, momentum=mt, weight_decay=weight_decay)
 
     # loading data
     train_dataset = load_cifar10_data('train', datadir)
@@ -251,6 +261,7 @@ if __name__ == '__main__':
     parser.add_argument('--mt', type=float, default=0.9)
     parser.add_argument('--stopcond', type=float, default=0.01)
     parser.add_argument('--rank_constraint', type=int, default=0)
+    parser.add_argument('--reg', type=str, default="l2")
     parser.add_argument('--checkpoint-path', type=str, default="./models/model_test.pt")
 
     args = parser.parse_args()
