@@ -199,7 +199,7 @@ def main(args):
     best_acc=0
     checkpoint_path=args.checkpoint_path
     for epoch in range(0, epochs):
-        train_acc, train_loss = train(model, device, train_loader, criterion, optimizer)# Training
+        train_acc, train_loss = train(model, device, train_loader, criterion, optimizer, reg)# Training
         val_acc, val_loss =  validate(model, device, val_loader, criterion)# Validation
         val_losses.append(val_loss)
 
