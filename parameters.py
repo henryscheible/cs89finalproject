@@ -2,7 +2,7 @@ arg_options = {
     "datadir": ["datasets"],
     "nchannels": [3],
     "nclasses": [10],
-    "nunits": range(1, 250, 30),
+    "nunits": [500, 1000, 2000],
     "lr": [0.005],
     "mt": [0.9],
     "batchsize": [256],
@@ -11,5 +11,6 @@ arg_options = {
     "l1": [0.0],
     "l2": [0.0],
     "dropout": [0.0],
-    "nlayers": [3],
+    "nlayers": [3,5,10],
+    "rank_constraint": [1,2,3,4,5]
 }
