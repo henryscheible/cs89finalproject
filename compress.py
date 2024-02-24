@@ -5,8 +5,11 @@ import random
 
 
 def main(args):
-    print(args.checkpoint_path)
-    print(args.rank)
+    checkpoint_path = args.checkpoint_path
+    rank = args.rank
+
+    
+
 
 
 if __name__ == '__main__':
