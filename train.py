@@ -12,7 +12,7 @@ import argparse
 from collections import OrderedDict
 
 # train the model for one epoch on the given dataset
-def train(model, device, train_loader, criterion, optimizer, reg):
+def train(model, device, train_loader, criterion, optimizer, l1_lambda):
     sum_loss, sum_correct = 0, 0
 
     # switch to train mode
@@ -32,8 +32,7 @@ def train(model, device, train_loader, criterion, optimizer, reg):
         # compute the gradient and do an SGD step
         optimizer.zero_grad()
 
-        if reg == "l1":
-            l1_lambda = 0.01
+        if l1_lambda >0:
             l1_reg = torch.tensor(0., requires_grad=True)
             for param in model.parameters():
                 l1_reg = l1_reg + torch.norm(param, 1)
@@ -165,10 +164,14 @@ def main(args):
     batchsize = args.batchsize
     epochs = args.epochs
     stopcond = args.stopcond
-    reg = args.reg
+    l1_lambda = args.l1
+    l2_lambda = args.l2
+    dropout_p = args.dropout
 
-    weight_decay = 0.01 if reg == "l2" else 0
-    print(f"weight decay of {weight_decay}")
+    weight_decay = l2_lambda
+    print(f"Running L2 (weight) decay of {weight_decay}")
+    print(f"Running L1 decay of {l1_lambda}")
+    print(f"Running dropout where prob of dropout is {dropout_p}")
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     kwargs = {'num_workers': 0, 'pin_memory': True} if device else {}
@@ -181,6 +184,15 @@ def main(args):
         print(f"Constructing normal model with no rank constrant")
         model = make_model(nchannels, nunits, nclasses)
     
+    if dropout_p>0:
+        dropout_model = nn.Sequential()
+        for i, layer in enumerate(model):
+            if isinstance(layer, nn.ReLU):
+                dropout_model.add_module(f"dropout after layer {i}", nn.Dropout(p=dropout_p))
+            else:
+                dropout_model.add_module(f"layer {i}", layer)
+        model = dropout_model
+
     model = model.to(device)
 
     # define loss function (criterion) and optimizer
@@ -199,7 +211,7 @@ def main(args):
     best_acc=0
     checkpoint_path=args.checkpoint_path
     for epoch in range(0, epochs):
-        train_acc, train_loss = train(model, device, train_loader, criterion, optimizer, reg)# Training
+        train_acc, train_loss = train(model, device, train_loader, criterion, optimizer, l1_lambda)# Training
         val_acc, val_loss =  validate(model, device, val_loader, criterion)# Validation
         val_losses.append(val_loss)
 
@@ -261,7 +273,9 @@ if __name__ == '__main__':
     parser.add_argument('--mt', type=float, default=0.9)
     parser.add_argument('--stopcond', type=float, default=0.01)
     parser.add_argument('--rank_constraint', type=int, default=0)
-    parser.add_argument('--reg', type=str, default="l2")
+    parser.add_argument('--l1', type=float, default=0)
+    parser.add_argument('--l2', type=float, default=0)
+    parser.add_argument('--dropout', type=float, default=0)
     parser.add_argument('--checkpoint-path', type=str, default="./models/model_test.pt")
 
     args = parser.parse_args()
