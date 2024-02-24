@@ -188,7 +188,7 @@ def main(args):
         dropout_model = nn.Sequential()
         for i, layer in enumerate(model):
             if isinstance(layer, nn.ReLU):
-                dropout_model.add_module(f"dropout after layer {i}", nn.Dropout(p=0.2))
+                dropout_model.add_module(f"dropout after layer {i}", nn.Dropout(p=dropout_p))
             else:
                 dropout_model.add_module(f"layer {i}", layer)
         model = dropout_model
