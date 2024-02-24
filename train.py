@@ -17,7 +17,7 @@ def train(model, device, train_loader, criterion, optimizer):
 
     # switch to train mode
     model.train()
-    for data, target in tqdm(train_loader):
+    for data, target in train_loader:
         data, target = data.to(device).view(data.size(0), -1), target.to(device)
 
         # compute the output
@@ -82,7 +82,6 @@ def load_cifar10_data(split, datadir):
         dataset = datasets.CIFAR10(root=datadir, train=True, download=True, transform=train_transform)
     else:
         dataset = datasets.CIFAR10(root=datadir, train=False, download=True, transform=val_transform)
-
     return dataset
 
 # define a fully connected neural network with a single hidden layer
@@ -190,7 +189,7 @@ def main(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--epochs', type=int, default=1)
+    parser.add_argument('--epochs', type=int, default=25)
     parser.add_argument('--batchsize', type=int, default=64)
     parser.add_argument('--lr', type=float, default=0.01)
     parser.add_argument('--datadir', type=str, default="datasets")
