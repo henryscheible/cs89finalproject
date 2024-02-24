@@ -7,5 +7,7 @@ arg_options = {
     "mt": [0.9],
     "batchsize": [256],
     "epochs": [25],
-    "stopcond": [0.01]
+    "stopcond": [0.01],
+    "rank_constraint": [0],
+    "reg": ["l2"],
 }
