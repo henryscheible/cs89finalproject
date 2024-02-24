@@ -18,7 +18,7 @@ def train(model, device, train_loader, criterion, optimizer):
 
     # switch to train mode
     model.train()
-    for data, target in tqdm(train_loader):
+    for data, target in train_loader:
         data, target = data.to(device).view(data.size(0), -1), target.to(device)
 
         # compute the output
@@ -101,7 +101,7 @@ def make_model(nchannels, nunits, nclasses, checkpoint=None):
 
 
 # define NN where we enforce the rank of each weight matrix to be k
-def make_rank_k_model(nchannels, nunits, nlayers, nclasses, k, checkpoint=None):
+def make_rank_k_model(nchannels, nunits, nclasses, nlayers, k, checkpoint=None):
     """
     Function to make a feed forward network where each of the weight matricies have rank <= k. 
     
@@ -139,6 +139,12 @@ def make_rank_k_model(nchannels, nunits, nlayers, nclasses, k, checkpoint=None):
     layers["classification"] = nn.Linear(in_features=nunits, out_features=nclasses)
 
     # 2) Define model
+    model = nn.Sequential(layers)
+
+    # 3) Load model if checkpoint given
+    if checkpoint: model.load_state_dict(torch.load(checkpoint))  
+    
+    return model
 
 
 def main(args):
@@ -155,10 +161,16 @@ def main(args):
     stopcond = args.stopcond
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    kwargs = {'num_workers': 0} if device else {}
+    kwargs = {'num_workers': 1, 'pin_memory': True} if device else {}
 
-    # create an initial model
-    model = make_model(nchannels, nunits, nclasses)
+    # create an initial model; do a check to see if we are ensuring the rank of all weight matricies <= k
+    if args.rank_constraint > 0:
+        print(f"Constructing model with rank {args.rank_constraint} constraint")
+        model = make_rank_k_model(nchannels, nunits, nclasses, nlayers=1, k=args.rank_constraint)
+    else:
+        print(f"Constructing normal model with no rank constrant")
+        model = make_model(nchannels, nunits, nclasses)
+    
     model = model.to(device)
 
     # define loss function (criterion) and optimizer
@@ -176,13 +188,13 @@ def main(args):
     val_losses = []
     best_acc=0
     checkpoint_path=args.checkpoint_path
-    for epoch in tqdm(range(0, epochs)):
+    for epoch in range(0, epochs):
         train_acc, train_loss = train(model, device, train_loader, criterion, optimizer)# Training
-        val_acc, val_loss = validate(model, device, val_loader, criterion)# Validation
+        val_acc, val_loss =  validate(model, device, val_loader, criterion)# Validation
         val_losses.append(val_loss)
 
-        # print(f'Epoch: {epoch + 1}/{epochs}\t Training loss: {train_loss:.3f}   Training accuracy: {train_acc:.3f}   ',
-        #       f'Validation accuracy: {val_acc:.3f}')
+        print(f'Epoch: {epoch + 1}/{epochs}\t Training loss: {train_loss:.3f}   Training accuracy: {train_acc:.3f}   ',
+              f'Validation accuracy: {val_acc:.3f}')
 
         
         is_best = val_acc > best_acc
@@ -195,8 +207,6 @@ def main(args):
         # stop training if the cross-entropy loss is less than the stopping condition
         if train_loss < stopcond:
             break
-
-
 
     # calculate the training error of the learned model
 
@@ -214,9 +224,9 @@ def main(args):
 
     # plt.show()
 
-    # print(f'=================== Summary ===================\n',
-    #       f'Training loss: {train_loss:.3f}   Validation loss {val_loss:.3f}   ',
-    #       f'Training accuracy: {train_acc:.3f}   Validation accuracy: {val_acc:.3f}\n')
+    print(f'=================== Summary ===================\n',
+          f'Training loss: {train_loss:.3f}   Validation loss {val_loss:.3f}   ',
+          f'Training accuracy: {train_acc:.3f}   Validation accuracy: {val_acc:.3f}\n')
     
     metrics = {
         "train_acc": train_acc,
@@ -231,15 +241,16 @@ def main(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--epochs', type=int, default=1)
+    parser.add_argument('--epochs', type=int, default=25)
     parser.add_argument('--batchsize', type=int, default=64)
     parser.add_argument('--lr', type=float, default=0.01)
-    parser.add_argument('--datadir', type=str, default="datasets")
+    parser.add_argument('--datadir', type=str, default="./datasets")
     parser.add_argument('--nchannels', type=int, default=3)
     parser.add_argument('--nclasses', type=int, default=10)
-    parser.add_argument('--nunits', type=int, default=1)
+    parser.add_argument('--nunits', type=int, default=256)
     parser.add_argument('--mt', type=float, default=0.9)
     parser.add_argument('--stopcond', type=float, default=0.01)
+    parser.add_argument('--rank_constraint', type=int, default=0)
     parser.add_argument('--checkpoint-path', type=str, default="./models/model_test.pt")
 
     args = parser.parse_args()
