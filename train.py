@@ -9,7 +9,6 @@ import copy
 import math
 import matplotlib.pyplot as plt
 import argparse
-from tqdm import tqdm
 from collections import OrderedDict
 
 # train the model for one epoch on the given dataset
@@ -175,7 +174,7 @@ def main(args):
     val_losses = []
     best_acc=0
     checkpoint_path=args.checkpoint_path
-    for epoch in tqdm(range(0, epochs)):
+    for epoch in range(0, epochs):
         train_acc, train_loss = train(model, device, train_loader, criterion, optimizer)# Training
         val_acc, val_loss = validate(model, device, val_loader, criterion)# Validation
         val_losses.append(val_loss)

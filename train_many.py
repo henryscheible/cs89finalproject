@@ -24,6 +24,8 @@ def train_one(args):
 
 if __name__ == "__main__":
     with Pool(10) as p:
-      r = list(tqdm.tqdm(p.imap(train_one, zip(range(len(arg_matrix)), arg_matrix)), total=range(len(arg_matrix))))
+      r = list( \
+         tqdm.tqdm(p.imap(train_one, zip(range(len(arg_matrix)), arg_matrix))) \
+         )
     results_df = pd.DataFrame.from_records(results_list)
     results_df.to_csv("./results.csv")
