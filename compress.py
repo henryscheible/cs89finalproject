@@ -1,4 +1,13 @@
 import argparse
+import torch
+import numpy as np
+import random
+
+
+def main(args):
+    print(args.checkpoint_path)
+    print(args.rank)
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
