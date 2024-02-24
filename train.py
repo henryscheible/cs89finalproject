@@ -160,11 +160,13 @@ def main(args):
     nclasses = args.nclasses
 
     nunits = args.nunits
+    nlayers = args.nlayers
     lr = args.lr
     mt = args.mt
     batchsize = args.batchsize
     epochs = args.epochs
     stopcond = args.stopcond
+    rank_constraint = args.rank_constraint
     l1_lambda = args.l1
     l2_lambda = args.l2
     dropout_p = args.dropout
@@ -173,14 +175,15 @@ def main(args):
     print(f"Running L2 (weight) decay of {weight_decay}")
     print(f"Running L1 decay of {l1_lambda}")
     print(f"Running dropout where prob of dropout is {dropout_p}")
+    print(f"")
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     kwargs = {'num_workers': 0} if device else {}
 
     # create an initial model; do a check to see if we are ensuring the rank of all weight matricies <= k
     if args.rank_constraint > 0:
-        print(f"Constructing model with rank {args.rank_constraint} constraint")
-        model = make_rank_k_model(nchannels, nunits, nclasses, nlayers=1, k=args.rank_constraint)
+        print(f"Constructing model with rank {rank_constraint} constraint")
+        model = make_rank_k_model(nchannels, nunits, nclasses, nlayers=nlayers, k=rank_constraint)
     else:
         print(f"Constructing normal model with no rank constrant")
         model = make_model(nchannels, nunits, nclasses)
@@ -267,6 +270,7 @@ if __name__ == '__main__':
     parser.add_argument('--epochs', type=int, default=25)
     parser.add_argument('--batchsize', type=int, default=64)
     parser.add_argument('--lr', type=float, default=0.01)
+    parser.add_argument('--nlayers', type=int, default=1)
     parser.add_argument('--datadir', type=str, default="./datasets")
     parser.add_argument('--nchannels', type=int, default=3)
     parser.add_argument('--nclasses', type=int, default=10)
