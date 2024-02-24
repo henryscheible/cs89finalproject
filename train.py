@@ -10,6 +10,7 @@ import math
 import matplotlib.pyplot as plt
 import argparse
 from tqdm import tqdm
+from collections import OrderedDict
 
 # train the model for one epoch on the given dataset
 def train(model, device, train_loader, criterion, optimizer):
@@ -98,9 +99,49 @@ def make_model(nchannels, nunits, nclasses, checkpoint=None):
     return model
 
 
+# define NN where we enforce the rank of each weight matrix to be k
+def make_rank_k_model(nchannels, nunits, nlayers, nclasses, k, checkpoint=None):
+    """
+    Function to make a feed forward network where each of the weight matricies have rank <= k. 
+    
+    Each "normal" layer [a map from dimention  d -> d'] in the feed forward network will be composed into 2 layers;
+    the first layer projects the d dimentional input into k dimentional space and the second pushes the k dim vector back up into d'.
+    
+    The resulting linear map is thus at most rank k.
+
+    inputs:
+    - nchannels=3 for CIFAR-10
+    - nunits: number of hidden units in each layer 
+    - n_layers: number of layers in network
+    - k: upper bound on the rank of all parameter matricies in the network
+
+    outputs:
+    - model: type torch.nn.Module
+    """
+
+    # 1) Construct layers of the network 
+
+    layers = OrderedDict() # container to store layers 
+
+    # first layer
+    layers['fc1_down'] = nn.Linear(in_features=nchannels*32*32, out_features=k)
+    layers['fc1_up'] = nn.Linear(in_features=k, out_features=nunits)
+    layers["fc1_non_lin"] = nn.ReLU()
+
+    # middle layers 
+    for layer_num in range(nlayers-1):
+        layers[f'fc{layer_num + 2}_down'] = nn.Linear(in_features=nunits, out_features=k)
+        layers[f'fc{layer_num + 2}_up'] = nn.Linear(in_features=k, out_features=nunits)
+        layers[f'fc{layer_num + 2}_non_lin'] = nn.ReLU()
+
+    # final layer; projects onto number of classes
+    layers["classification"] = nn.Linear(in_features=nunits, out_features=nclasses)
+
+    # 2) Define model
+
 
 def main(args):
-    # define the parameters to train your model
+    # define the parameters to train your model11
     datadir = 'datasets'  # the directory of the dataset
     nchannels = args.nchannels
     nclasses = args.nclasses
