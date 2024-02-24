@@ -171,7 +171,7 @@ def main(args):
     print(f"weight decay of {weight_decay}")
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    kwargs = {'num_workers': 1, 'pin_memory': True} if device else {}
+    kwargs = {'num_workers': 0, 'pin_memory': True} if device else {}
 
     # create an initial model; do a check to see if we are ensuring the rank of all weight matricies <= k
     if args.rank_constraint > 0:
