@@ -17,7 +17,7 @@ def train(model, device, train_loader, criterion, optimizer):
 
     # switch to train mode
     model.train()
-    for data, target in train_loader:
+    for data, target in tqdm(train_loader):
         data, target = data.to(device).view(data.size(0), -1), target.to(device)
 
         # compute the output
@@ -114,7 +114,7 @@ def main(args):
     stopcond = args.stopcond
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    kwargs = {'num_workers': 1, 'pin_memory': True} if device else {}
+    kwargs = {'num_workers': 0} if device else {}
 
     # create an initial model
     model = make_model(nchannels, nunits, nclasses)
@@ -137,7 +137,7 @@ def main(args):
     checkpoint_path=args.checkpoint_path
     for epoch in tqdm(range(0, epochs)):
         train_acc, train_loss = train(model, device, train_loader, criterion, optimizer)# Training
-        val_acc, val_loss =  validate(model, device, val_loader, criterion)# Validation
+        val_acc, val_loss = validate(model, device, val_loader, criterion)# Validation
         val_losses.append(val_loss)
 
         # print(f'Epoch: {epoch + 1}/{epochs}\t Training loss: {train_loss:.3f}   Training accuracy: {train_acc:.3f}   ',
@@ -190,13 +190,13 @@ def main(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--epochs', type=int, default=25)
+    parser.add_argument('--epochs', type=int, default=1)
     parser.add_argument('--batchsize', type=int, default=64)
     parser.add_argument('--lr', type=float, default=0.01)
     parser.add_argument('--datadir', type=str, default="datasets")
     parser.add_argument('--nchannels', type=int, default=3)
     parser.add_argument('--nclasses', type=int, default=10)
-    parser.add_argument('--nunits', type=int, default=256)
+    parser.add_argument('--nunits', type=int, default=1)
     parser.add_argument('--mt', type=float, default=0.9)
     parser.add_argument('--stopcond', type=float, default=0.01)
     parser.add_argument('--checkpoint-path', type=str, default="./models/model_test.pt")
