@@ -2,8 +2,11 @@ import argparse
 import torch
 from torch import nn
 import numpy as np
-from train import make_model, make_rank_k_model
+from train import make_model, make_rank_k_model, validate, load_cifar10_data
 import random
+from torch.utils.data import DataLoader
+
+device = 'gpu' if torch.cuda.is_available() else 'cpu'
 
 def view_weights(weights):
     for k, v in weights.items():
@@ -20,7 +23,8 @@ def convert_weight_to_low_rank(weights, k):
     total_layers = len(weights)/2
     for key, A in weights.items():
         # Don't adjust the rank of the last layer
-        if 'weight' in key and layers_idx < total_layers-1:
+        if "weight" in key and layers_idx < total_layers-1:
+            print(f"Applying truncated SVD on layer {key}")
             U, S, V = torch.svd(A)
             U_k = U[:, :k] 
             S_k = S[:k]  
@@ -32,33 +36,61 @@ def convert_weight_to_low_rank(weights, k):
             layers_idx+=1
 
 
+def eval_model(model, model_name):
+    train_dataset = load_cifar10_data('train', './datasets')
+    val_dataset = load_cifar10_data('val', './datasets')
+
+    train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True, num_workers=1, pin_memory=True)
+    val_loader = DataLoader(val_dataset, batch_size=64, shuffle=False, num_workers=1, pin_memory=True)
+
+    criterion = nn.CrossEntropyLoss().to(device)
+
+    train_acc, train_loss = validate(model, device, train_loader, criterion)
+    val_acc, val_loss = validate(model, device, val_loader, criterion)
+
+    print(f'=================== Summary for model {model_name}===================\n',
+          f'Training loss: {train_loss:.3f}   Validation loss {val_loss:.3f}   ',
+          f'Training accuracy: {train_acc:.3f}   Validation accuracy: {val_acc:.3f}\n')
+
+    return train_acc, val_acc, train_loss, val_loss
+
 
 def main(args):
-    checkpoint_path = args.checkpoint_path
+    checkpoint_path = "./models/" + args.checkpoint_path
     k = args.rank
-    model_dict = torch.load(checkpoint_path)
-    weights = model_dict["model"]
-    # model_args = model_dict["args"]
-    # if model_args["rank_constraint"] > 0:
-    #     # print(f"Constructing model with rank {rank_constraint} constraint")
-    #     model = make_rank_k_model(model_args["nchannels"], model_args["nunits"], model_args["nclasses"], nlayers=model_args["nlayers"], k=model_args["rank_constraint"])
-    # else:
-    #     # print(f"Constructing normal model with no rank constrant")
-    #     model = make_model(model_args["nchannels"], model_args["nunits"], model_args["nclasses"], nlayers=model_args["nlayers"])
-    view_weights(weights)
+
+    model_file = torch.load(checkpoint_path)
+    weights = model_file['model']
+
+    nchannels = model_file['args']['nchannels']
+    nunits = model_file['args']['nunits']
+    nclasses = model_file['args']['nclasses']
+    nlayers = model_file['args']['nlayers']
+
+
+    model = make_model(nchannels=nchannels, nunits=nunits, nclasses=nclasses, nlayers=nlayers)
+    
+    # Do the low-rank approximation of the weights before we evaluate the model 
     convert_weight_to_low_rank(weights, k)
+    model.load_state_dict(weights)
+    # view_weights(weights)
+    
+    eval_model(model, f"Model with {k}-Rank Approximation @ Inference")
+
+    # TO DO: The model weights here are NaN
+    model_B_file = torch.load("./models/nlayers=3_k=1.pt", map_location=torch.device('cpu'))
+    # print(model_B_file)
+    
 
 
 
-    # model.load_state_dict(torch.load(checkpoint_path))
-    # print(model)
 
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--checkpoint-path', type=str, default="./models/model_test.pt")
+    parser.add_argument('--checkpoint-path', type=str, default="model_test.pt")
     parser.add_argument('--rank', type=int, default=1)
 
     args = parser.parse_args()
