@@ -33,7 +33,7 @@ if __name__ == "__main__":
     print("Preprocessing Dataset")
     processed_train_datasets, processed_val_dataset = preprocess_dataset(data_args)
 
-    for args in tqdm(arg_matrix):
+    for args in tqdm.tqdm(arg_matrix):
        args.processed_train_datasets = processed_train_datasets
        args.processed_val_dataset = processed_val_dataset
     print("Beginning Model Training")
