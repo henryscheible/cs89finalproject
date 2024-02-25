@@ -95,6 +95,6 @@ if __name__ == '__main__':
     processed_train_dataset, processed_val_dataset = preprocess_dataset(args)
 
     torch.save(processed_train_dataset, "processed_train_dataset.pt")
-    torch.save(processed_train_dataset, "processed_val_dataset.pt")
+    torch.save(processed_val_dataset, "processed_val_dataset.pt")
 
 
