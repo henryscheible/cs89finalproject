@@ -27,5 +27,5 @@ if __name__ == "__main__":
       r = list( \
          tqdm.tqdm(p.imap(train_one, zip(range(len(arg_matrix)), arg_matrix))) \
          )
-    results_df = pd.DataFrame.from_records(results_list)
+    results_df = pd.DataFrame.from_records(r)
     results_df.to_csv("./results.csv")
