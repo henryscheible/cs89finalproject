@@ -2,7 +2,7 @@ import argparse
 import torch
 from torch import nn
 import numpy as np
-from train import make_model
+from train import make_model, make_rank_k_model
 import random
 
 def view_weights(weights):
@@ -36,14 +36,15 @@ def convert_weight_to_low_rank(weights, k):
 def main(args):
     checkpoint_path = args.checkpoint_path
     k = args.rank
-    nunits = 1024
-    model = make_model(3, 1024, 10)
-    nn.Sequential(
-        nn.Linear(in_features=10*32*32, out_features=nunits),
-        nn.ReLU(),
-        nn.Linear(in_features=nunits, out_features=10)
-    )
-    weights = torch.load(checkpoint_path)
+    model_dict = torch.load(checkpoint_path)
+    weights = model_dict["model"]
+    # model_args = model_dict["args"]
+    # if model_args["rank_constraint"] > 0:
+    #     # print(f"Constructing model with rank {rank_constraint} constraint")
+    #     model = make_rank_k_model(model_args["nchannels"], model_args["nunits"], model_args["nclasses"], nlayers=model_args["nlayers"], k=model_args["rank_constraint"])
+    # else:
+    #     # print(f"Constructing normal model with no rank constrant")
+    #     model = make_model(model_args["nchannels"], model_args["nunits"], model_args["nclasses"], nlayers=model_args["nlayers"])
     view_weights(weights)
     convert_weight_to_low_rank(weights, k)
 
