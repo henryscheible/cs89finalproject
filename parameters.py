@@ -15,7 +15,8 @@ arg_options = {
         "dropout": [0.0, 0.25, 0.5],
         "nlayers": [3],
         "rank_constraint": [0],
-        "data_aug": [0]
+        "data_aug": [0],
+        "device": "cuda"
     }
 
 
