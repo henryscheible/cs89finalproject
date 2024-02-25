@@ -82,11 +82,6 @@ def main(args):
     # print(model_B_file)
     
 
-
-
-
-
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
