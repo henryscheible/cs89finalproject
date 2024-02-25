@@ -1,4 +1,5 @@
 import os
+from types import SimpleNamespace
 import torch
 from torch import nn, optim
 from torch.utils.data import DataLoader
@@ -11,8 +12,14 @@ import matplotlib.pyplot as plt
 import argparse
 from collections import OrderedDict
 from tqdm import tqdm
+import pickle
 
-# train the model for one ep
+
+class ProcessedDataLoader():
+    def __getitem__(self, i):
+        return self.loader[i]
+
+
 
 # load and preprocess CIFAR-10 data.
 def load_cifar10_data(split, datadir):
@@ -50,12 +57,19 @@ def preprocess_dataset(args):
     train_loader = DataLoader(train_dataset, batch_size=batchsize, shuffle=True)
     val_loader = DataLoader(val_dataset, batch_size=batchsize, shuffle=False)
 
-    processed_train_dataset = []
+    p_train_dataset = []
     for (data, target) in tqdm(train_loader):
-            processed_train_dataset += [(data, target)]
-    processed_val_dataset = []
+            p_train_dataset += [(data, target)]
+    p_val_dataset = []
     for (data, target) in tqdm(val_loader):
-            processed_val_dataset += [(data, target)]
+            p_val_dataset += [(data, target)]
+
+    processed_train_dataset = ProcessedDataLoader()
+    processed_train_dataset.loader = p_train_dataset
+    processed_train_dataset.dataset = train_dataset
+    processed_val_dataset = ProcessedDataLoader()
+    processed_val_dataset.loader = p_val_dataset
+    processed_val_dataset.dataset = val_dataset
     # for i in range(0, epochs):
     #     print(f"Epoch {i}")
     #     train_dataset_i = []
@@ -68,7 +82,7 @@ def preprocess_dataset(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--batchsize', type=int, default=64)
+    parser.add_argument('--batchsize', type=int, default=256)
     parser.add_argument('--epochs', type=int, default=25)
 
     parser.add_argument('--datadir', type=str, default="./datasets")
@@ -78,4 +92,9 @@ if __name__ == '__main__':
     torch.manual_seed(0)
     np.random.seed(0)
     random.seed(0)
-    main(args)
+    processed_train_dataset, processed_val_dataset = preprocess_dataset(args)
+
+    torch.save(processed_train_dataset, "processed_train_dataset.pt")
+    torch.save(processed_train_dataset, "processed_val_dataset.pt")
+
+
