@@ -14,7 +14,8 @@ arg_options = {
         "l2": [0.0, 0.01, 0.1],
         "dropout": [0.0, 0.25, 0.5],
         "nlayers": [3],
-        "rank_constraint": [0]
+        "rank_constraint": [0],
+        "data_aug": [0]
     }
 
 
