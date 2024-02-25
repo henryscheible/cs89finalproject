@@ -1,5 +1,6 @@
 import torch
 import matplotlib.pyplot as plt
+from compress import convert_weight_to_low_rank
 
 def show_spec_density(weight_layer_name, weight_matrix, fig, axs, i=0,):
     # Compute the singular value decomposition
@@ -29,7 +30,9 @@ def show_all_spec_density(weight_dict):
 if __name__ == "__main__":
     model_path = "models/"
     checkpoint= model_path + 'model_test.pt'
-    nunits = 1024
-    # model = make_model(3, nunits, 10, checkpoint)
     weight_dict = torch.load(checkpoint)['model']
+
+    k = 128
+    convert_weight_to_low_rank(weight_dict, k)
+
     show_all_spec_density(weight_dict)
