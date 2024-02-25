@@ -33,7 +33,7 @@ if __name__ == "__main__":
         args["val_dataset_path"] = "./processed_val_dataset.pt"
 
     print("Beginning Model Training")
-    with Pool(5) as p:
+    with Pool(1) as p:
       r = list( \
          tqdm.tqdm(p.imap(train_one, zip(range(len(arg_matrix)), arg_matrix))) \
          )
