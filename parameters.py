@@ -16,7 +16,7 @@ arg_options = {
         "nlayers": [3],
         "rank_constraint": [0],
         "data_aug": [0],
-        "device": "cuda"
+        "device": ["cuda"]
     }
 
 

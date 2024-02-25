@@ -197,7 +197,6 @@ def main(args):
     # print(f"")
 
     device = args.device
-    print(f"device: {device}")
     # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     kwargs = {'num_workers': 1, 'pin_memory': True} if device else {}
 
