@@ -92,13 +92,22 @@ def load_cifar10_data(split, datadir):
     return dataset
 
 # define a fully connected neural network with a single hidden layer
-def make_model(nchannels, nunits, nclasses, checkpoint=None):
+def make_model(nchannels, nunits, nclasses, nlayers, checkpoint=None):
     # define the model
-    model = nn.Sequential(
-        nn.Linear(in_features=nchannels*32*32, out_features=nunits),
-        nn.ReLU(),
-        nn.Linear(in_features=nunits, out_features=nclasses)
-    )
+
+    layers = OrderedDict() # container to store layers 
+    layers['fc1'] = nn.Linear(in_features=nchannels*32*32, out_features=nunits)
+    layers['nl1'] = nn.ReLU()
+
+     # middle layers 
+    for layer_num in range(nlayers-1):
+        layers[f'fc{layer_num + 2}'] = nn.Linear(in_features=nunits, out_features=nunits)
+        layers[f'fc{layer_num + 2}_nl'] = nn.ReLU()
+
+    layers["classification"] = nn.Linear(in_features=nunits, out_features=nclasses)
+
+    model = nn.Sequential(layers)
+
     if checkpoint:
         model.load_state_dict(torch.load(checkpoint))   
 
@@ -176,7 +185,8 @@ def main(args):
     print(f"Running dropout where prob of dropout is {dropout_p}")
     print(f"")
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = args.device
+    # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     kwargs = {'num_workers': 1, 'pin_memory': True} if device else {}
 
     # create an initial model; do a check to see if we are ensuring the rank of all weight matricies <= k
@@ -185,7 +195,7 @@ def main(args):
         model = make_rank_k_model(nchannels, nunits, nclasses, nlayers=nlayers, k=rank_constraint)
     else:
         print(f"Constructing normal model with no rank constrant")
-        model = make_model(nchannels, nunits, nclasses)
+        model = make_model(nchannels, nunits, nclasses, nlayers)
     
     if dropout_p>0:
         dropout_model = nn.Sequential()
@@ -227,7 +237,7 @@ def main(args):
 
         # save checkpoint if is a new best
         if is_best:
-            torch.save(model.state_dict(), checkpoint_path)
+            torch.save({"model state": model.state_dict(),"hps":args}, checkpoint_path)
         
         # stop training if the cross-entropy loss is less than the stopping condition
         if train_loss < stopcond:
@@ -266,6 +276,7 @@ def main(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
+    parser.add_argument('--device', type=str, default="cuda:0")
     parser.add_argument('--epochs', type=int, default=25)
     parser.add_argument('--batchsize', type=int, default=64)
     parser.add_argument('--lr', type=float, default=0.01)
