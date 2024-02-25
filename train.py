@@ -10,6 +10,9 @@ import math
 import matplotlib.pyplot as plt
 import argparse
 from collections import OrderedDict
+from tqdm import tqdm
+from preprocess_dataset import ProcessedDataLoader
+
 
 # train the model for one epoch on the given dataset
 def train(model, device, train_loader, criterion, optimizer, l1_lambda):
@@ -74,8 +77,8 @@ def load_cifar10_data(split, datadir):
     # Data Normalization and Augmentation (random cropping and horizontal flipping)
     # The mean and standard deviation of the CIFAR-10 dataset: mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
     train_transform = transforms.Compose([
-        transforms.RandomResizedCrop(size=32),
         transforms.RandomHorizontalFlip(p=0.5),
+        transforms.RandomVerticalFlip(p=0.5),
         transforms.ToTensor(),
         transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
     ])
@@ -171,20 +174,20 @@ def main(args):
     dropout_p = args.dropout
 
     weight_decay = l2_lambda
-    print(f"Running L2 (weight) decay of {weight_decay}")
-    print(f"Running L1 decay of {l1_lambda}")
+    # print(f"Running L2 (weight) decay of {weight_decay}")
+    # print(f"Running L1 decay of {l1_lambda}")
     # print(f"Running dropout where prob of dropout is {dropout_p}")
-    print(f"")
+    # print(f"")
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    kwargs = {'num_workers': 1, 'pin_memory': True} if device else {}
+    kwargs = {'num_workers': 0} if device else {}
 
     # create an initial model; do a check to see if we are ensuring the rank of all weight matricies <= k
     if args.rank_constraint > 0:
-        print(f"Constructing model with rank {rank_constraint} constraint")
+        # print(f"Constructing model with rank {rank_constraint} constraint")
         model = make_rank_k_model(nchannels, nunits, nclasses, nlayers=nlayers, k=rank_constraint)
     else:
-        print(f"Constructing normal model with no rank constrant")
+        # print(f"Constructing normal model with no rank constrant")
         model = make_model(nchannels, nunits, nclasses)
     
 
@@ -205,23 +208,27 @@ def main(args):
     optimizer = optim.SGD(model.parameters(), lr=lr, momentum=mt, weight_decay=weight_decay)
 
     # loading data
-    train_dataset = load_cifar10_data('train', datadir)
-    val_dataset = load_cifar10_data('val', datadir)
+    if not args.train_dataset_path:
+        train_dataset = load_cifar10_data('train', datadir)
+        val_dataset = load_cifar10_data('val', datadir)
 
-    train_loader = DataLoader(train_dataset, batch_size=batchsize, shuffle=True, **kwargs)
-    val_loader = DataLoader(val_dataset, batch_size=batchsize, shuffle=False, **kwargs)
+        train_loader = DataLoader(train_dataset, batch_size=batchsize, shuffle=True, **kwargs)
+        val_loader = DataLoader(val_dataset, batch_size=batchsize, shuffle=False, **kwargs)
+    else:
+        val_loader = torch.load(args.val_dataset_path)
+        train_loader = torch.load(args.train_dataset_path)
 
     # training the model
     val_losses = []
     best_acc=0
     checkpoint_path=args.checkpoint_path
-    for epoch in range(0, epochs):
+    for epoch in tqdm(range(0, epochs)):
         train_acc, train_loss = train(model, device, train_loader, criterion, optimizer, l1_lambda)# Training
         val_acc, val_loss =  validate(model, device, val_loader, criterion)# Validation
         val_losses.append(val_loss)
 
-        print(f'Epoch: {epoch + 1}/{epochs}\t Training loss: {train_loss:.3f}   Training accuracy: {train_acc:.3f}   ',
-              f'Validation accuracy: {val_acc:.3f}')
+        # print(f'Epoch: {epoch + 1}/{epochs}\t Training loss: {train_loss:.3f}   Training accuracy: {train_acc:.3f}   ',
+        #       f'Validation accuracy: {val_acc:.3f}')
 
         
         is_best = val_acc > best_acc
@@ -236,6 +243,8 @@ def main(args):
             break
 
     # calculate the training error of the learned model
+    best_state_dict = torch.load(checkpoint_path)
+    model.load_state_dict(best_state_dict)
 
     train_acc, train_loss = validate(model, device, train_loader, criterion)
     val_acc, val_loss = validate(model, device, val_loader, criterion)
@@ -282,6 +291,8 @@ if __name__ == '__main__':
     parser.add_argument('--l1', type=float, default=0)
     parser.add_argument('--l2', type=float, default=0)
     parser.add_argument('--dropout', type=float, default=0)
+    parser.add_argument('--train-dataset-path', type=str, default=None)
+    parser.add_argument('--val-dataset-path', type=str, default=None)
     parser.add_argument('--checkpoint-path', type=str, default="./models/model_test.pt")
 
     args = parser.parse_args()
