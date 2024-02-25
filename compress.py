@@ -75,18 +75,22 @@ def main(args):
     model.load_state_dict(weights)
     # view_weights(weights)
     
-    eval_model(model, f"Model with {k}-Rank Approximation @ Inference")
 
-    # TO DO: The model weights here are NaN
-    model_B_file = torch.load("./models/nlayers=3_k=16.pt", map_location=torch.device('cpu'))
-    # print(model_B_file)
+    eval_model(model, f"Model with {k}-Rank Approximation @ Inference")
+    print(f"Total Parameters for Truncated Model: {sum([p.numel() for p in weights.values()])}")
+
+
+
+    model_B_file = torch.load("./models/nlayers=3_k=16.pt", map_location=torch.device('cpu'))['model state']
+    print(f"Total Parameters for train rank-constrained Model: {sum([p.numel() for p in model_B_file.values()])}")
+
     
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
     parser.add_argument('--checkpoint-path', type=str, default="model_test.pt")
-    parser.add_argument('--rank', type=int, default=1)
+    parser.add_argument('--rank', type=int, default=16)
 
     args = parser.parse_args()
 
