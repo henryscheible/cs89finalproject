@@ -1,7 +1,6 @@
 # Regularization experiments
 
-arg_options = [
-    {
+arg_options = {
         "datadir": ["datasets"],
         "nchannels": [3],
         "nclasses": [10],
@@ -17,7 +16,7 @@ arg_options = [
         "nlayers": [3],
         "rank_constraint": [0]
     }
-]
+
 
 
 # arg_options = [
