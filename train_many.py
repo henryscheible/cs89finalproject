@@ -10,11 +10,12 @@ import tqdm
 from preprocess_dataset import preprocess_dataset, ProcessedDataLoader
 
 base_arg_matrices = [dict(zip(arg_options.keys(), values)) for values in product(*arg_options.values())]
+
 # full_arg_matrices = []
 # for arg_matrix in base_arg_matrices:
 #    full_arg_matrices += [{**arg_matrix, "rank_constraint": r} for r in range(1, arg_matrix["nunits"], 10)]
 
-arg_matrix = base_arg_matrices
+arg_matrix = filter(lambda: x["rank_constraint"] < x["nunits"])
 results_list = []
 
 def train_one(args):
