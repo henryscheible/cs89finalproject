@@ -95,16 +95,25 @@ def load_cifar10_data(split, datadir):
     return dataset
 
 # define a fully connected neural network with a single hidden layer
-def make_model(nchannels, nunits, nclasses, checkpoint=None):
-    # define the model
-    model = nn.Sequential(
-        nn.Linear(in_features=nchannels*32*32, out_features=nunits),
-        nn.ReLU(),
-        nn.Linear(in_features=nunits, out_features=nclasses)
-    )
+def make_model(nchannels, nunits, nclasses, checkpoint=None, nlayers=1):
+    layers = OrderedDict() # container to store layers 
+
+    # first layer
+    layers['fc1'] = nn.Linear(in_features=nchannels*32*32, out_features=nunits)
+    layers["fc1_non_lin"] = nn.ReLU()
+
+    # middle layers 
+    for layer_num in range(nlayers-1):
+        layers[f'fc{layer_num + 2}'] = nn.Linear(in_features=nunits, out_features=nunits)
+        layers[f'fc{layer_num + 2}_non_lin'] = nn.ReLU()
+
+    # final layer; projects onto number of classes
+    layers["classification"] = nn.Linear(in_features=nunits, out_features=nclasses)
+
+    # 2) Define model
+    model = nn.Sequential(layers)
     if checkpoint:
         model.load_state_dict(torch.load(checkpoint))   
-
     return model
 
 
@@ -188,7 +197,7 @@ def main(args):
         model = make_rank_k_model(nchannels, nunits, nclasses, nlayers=nlayers, k=rank_constraint)
     else:
         # print(f"Constructing normal model with no rank constrant")
-        model = make_model(nchannels, nunits, nclasses)
+        model = make_model(nchannels, nunits, nclasses, nlayers=nlayers)
     
 
     # ----------- TO DO:  NOT USING DROPOUT FOR NOW ----------------

@@ -2,6 +2,7 @@ import argparse
 import torch
 from torch import nn
 import numpy as np
+from train import make_model
 import random
 
 def view_weights(weights):
@@ -36,7 +37,8 @@ def main(args):
     checkpoint_path = args.checkpoint_path
     k = args.rank
     nunits = 1024
-    model = nn.Sequential(
+    model = make_model(3, 1024, 10)
+    nn.Sequential(
         nn.Linear(in_features=10*32*32, out_features=nunits),
         nn.ReLU(),
         nn.Linear(in_features=nunits, out_features=10)
