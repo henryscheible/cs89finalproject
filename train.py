@@ -74,7 +74,7 @@ def validate(model, device, val_loader, criterion):
 
 
 # load and preprocess CIFAR-10 data.
-def load_cifar10_data(split, datadir):
+def load_cifar10_data(split, datadir, data_aug=0):
     # Data Normalization and Augmentation (random cropping and horizontal flipping)
     # The mean and standard deviation of the CIFAR-10 dataset: mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
     train_transform = transforms.Compose([
@@ -88,6 +88,12 @@ def load_cifar10_data(split, datadir):
         transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
     ])
 
+    # if we are not doing data-augmentation, only apply normalization to training data
+    if not bool(data_aug): 
+        print(f"Data augmentation on the {split} set: FALSE")
+        train_transform = val_transform
+    else:
+        print(f"Data augmentation on the {split} set: TRUE")
 
     if split == 'train':
         dataset = datasets.CIFAR10(root=datadir, train=True, download=True, transform=train_transform)
@@ -171,6 +177,7 @@ def main(args):
     nchannels = args.nchannels
     nclasses = args.nclasses
 
+    data_aug = args.data_aug
     nunits = args.nunits
     nlayers = args.nlayers
     lr = args.lr
@@ -220,7 +227,7 @@ def main(args):
 
     # loading data
     if not args.train_dataset_path:
-        train_dataset = load_cifar10_data('train', datadir)
+        train_dataset = load_cifar10_data('train', datadir, data_aug)
         val_dataset = load_cifar10_data('val', datadir)
 
         train_loader = DataLoader(train_dataset, batch_size=batchsize, shuffle=True, **kwargs)
@@ -288,6 +295,7 @@ def main(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
+    parser.add_argument('--data-aug', type=int, default=1)
     parser.add_argument('--device', type=str, default="cuda:0")
     parser.add_argument('--epochs', type=int, default=25)
     parser.add_argument('--batchsize', type=int, default=64)
