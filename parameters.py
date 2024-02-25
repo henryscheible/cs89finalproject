@@ -12,5 +12,5 @@ arg_options = {
     "l2": [0.0],
     "dropout": [0.0],
     "nlayers": [3],
-    "rank_constraint": [0,2,4,6,8,10,20,40,60,80]
+    "rank_constraint": [0,10,20,40,60,80,500,1000,2000]
 }

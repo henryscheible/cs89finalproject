@@ -13,6 +13,7 @@ from collections import OrderedDict
 from tqdm import tqdm
 from preprocess_dataset import ProcessedDataLoader
 
+import subprocess
 
 # train the model for one epoch on the given dataset
 def train(model, device, train_loader, criterion, optimizer, l1_lambda):
@@ -246,7 +247,7 @@ def main(args):
 
         # save checkpoint if is a new best
         if is_best:
-            torch.save({"model state": model.state_dict(),"hps":args}, checkpoint_path)
+            torch.save({"model": model.state_dict(), "args": vars(args)}, checkpoint_path)
         
         # stop training if the cross-entropy loss is less than the stopping condition
         if train_loss < stopcond:
@@ -254,7 +255,7 @@ def main(args):
 
     # calculate the training error of the learned model
     best_state_dict = torch.load(checkpoint_path)
-    model.load_state_dict(best_state_dict)
+    model.load_state_dict(best_state_dict["model"])
 
     train_acc, train_loss = validate(model, device, train_loader, criterion)
     val_acc, val_loss = validate(model, device, val_loader, criterion)
