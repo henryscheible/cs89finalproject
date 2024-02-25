@@ -19,8 +19,8 @@ def load_cifar10_data(split, datadir):
     # Data Normalization and Augmentation (random cropping and horizontal flipping)
     # The mean and standard deviation of the CIFAR-10 dataset: mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
     train_transform = transforms.Compose([
-        transforms.RandomResizedCrop(size=32),
-        transforms.RandomHorizontalFlip(p=0.5),
+        # transforms.RandomResizedCrop(size=32),
+        # transforms.RandomHorizontalFlip(p=0.5),
         transforms.ToTensor(),
         transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
     ])
@@ -50,18 +50,20 @@ def preprocess_dataset(args):
     train_loader = DataLoader(train_dataset, batch_size=batchsize, shuffle=True)
     val_loader = DataLoader(val_dataset, batch_size=batchsize, shuffle=False)
 
-    processed_train_datasets = []
+    processed_train_dataset = []
+    for (data, target) in tqdm(train_loader):
+            processed_train_dataset += [(data, target)]
     processed_val_dataset = []
     for (data, target) in tqdm(val_loader):
             processed_val_dataset += [(data, target)]
-    for i in range(0, epochs):
-        print(f"Epoch {i}")
-        train_dataset_i = []
-        for (data, target) in tqdm(train_loader):
-            train_dataset_i += [(data, target)]
-        processed_train_datasets += [train_dataset_i]
+    # for i in range(0, epochs):
+    #     print(f"Epoch {i}")
+    #     train_dataset_i = []
+    #     for (data, target) in tqdm(train_loader):
+    #         train_dataset_i += [(data, target)]
+    #     processed_train_datasets += [train_dataset_i]
 
-    return processed_train_datasets, processed_val_dataset
+    return processed_train_dataset, processed_val_dataset
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
