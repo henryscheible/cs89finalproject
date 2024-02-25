@@ -209,12 +209,12 @@ def main(args):
         model = make_model(nchannels, nunits, nclasses, nlayers=nlayers)
     
 
-    if dropout_p>0:
+    if args.dropout > 0:
         dropout_model = nn.Sequential()
         for i, layer in enumerate(model):
             dropout_model.add_module(f"layer {i}", layer)
             if isinstance(layer, nn.ReLU):
-                dropout_model.add_module(f"dropout after layer {i}", nn.Dropout(p=dropout_p))
+                dropout_model.add_module(f"dropout after layer {i}", nn.Dropout(p=args.dropout))
         model = dropout_model
 
     model = model.to(device)
