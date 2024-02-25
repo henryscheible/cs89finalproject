@@ -7,6 +7,7 @@ from train import main
 import pandas as pd
 import time
 import tqdm
+from preprocess_dataset import preprocess_dataset
 
 base_arg_matrices = [dict(zip(arg_options.keys(), values)) for values in product(*arg_options.values())]
 # full_arg_matrices = []
@@ -27,6 +28,17 @@ def train_one(args):
 
 
 if __name__ == "__main__":
+    data_args = SimpleNamespace(batchsize=arg_matrix[0]["batchsize"], epochs=arg_matrix[0]["epochs"], datadir="./datasets")
+
+    print("Preprocessing Dataset")
+    processed_train_datasets, processed_val_dataset = preprocess_dataset(data_args)
+
+    for args in tqdm(arg_matrix):
+       args.processed_train_datasets = processed_train_datasets
+       args.processed_val_dataset = processed_val_dataset
+    print("Beginning Model Training")
+
+
     with Pool(10) as p:
       r = list( \
          tqdm.tqdm(p.imap(train_one, zip(range(len(arg_matrix)), arg_matrix))) \

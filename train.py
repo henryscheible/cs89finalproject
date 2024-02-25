@@ -204,17 +204,22 @@ def main(args):
     optimizer = optim.SGD(model.parameters(), lr=lr, momentum=mt, weight_decay=weight_decay)
 
     # loading data
-    train_dataset = load_cifar10_data('train', datadir)
-    val_dataset = load_cifar10_data('val', datadir)
+    if not args.processed_train_datasets:
+        train_dataset = load_cifar10_data('train', datadir)
+        val_dataset = load_cifar10_data('val', datadir)
 
-    train_loader = DataLoader(train_dataset, batch_size=batchsize, shuffle=True, **kwargs)
-    val_loader = DataLoader(val_dataset, batch_size=batchsize, shuffle=False, **kwargs)
+        train_loader = DataLoader(train_dataset, batch_size=batchsize, shuffle=True, **kwargs)
+        val_loader = DataLoader(val_dataset, batch_size=batchsize, shuffle=False, **kwargs)
+    else:
+        val_loader = copy.deepcopy(args.processed_val_dataset)
 
     # training the model
     val_losses = []
     best_acc=0
     checkpoint_path=args.checkpoint_path
     for epoch in range(0, epochs):
+        if args.processed_train_datasets:
+            train_loader = copy.deepcopy(args.processed_train_datasets[epoch])
         train_acc, train_loss = train(model, device, train_loader, criterion, optimizer, l1_lambda)# Training
         val_acc, val_loss =  validate(model, device, val_loader, criterion)# Validation
         val_losses.append(val_loss)
