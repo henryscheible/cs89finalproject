@@ -190,14 +190,16 @@ def main(args):
         # print(f"Constructing normal model with no rank constrant")
         model = make_model(nchannels, nunits, nclasses)
     
-    if dropout_p>0:
-        dropout_model = nn.Sequential()
-        for i, layer in enumerate(model):
-            if isinstance(layer, nn.ReLU):
-                dropout_model.add_module(f"dropout after layer {i}", nn.Dropout(p=dropout_p))
-            else:
-                dropout_model.add_module(f"layer {i}", layer)
-        model = dropout_model
+
+    # ----------- TO DO:  NOT USING DROPOUT FOR NOW ----------------
+    # if dropout_p>0:
+    #     dropout_model = nn.Sequential()
+    #     for i, layer in enumerate(model):
+    #         if isinstance(layer, nn.ReLU):
+    #             dropout_model.add_module(f"dropout after layer {i}", nn.Dropout(p=dropout_p))
+    #         else:
+    #             dropout_model.add_module(f"layer {i}", layer)
+    #     model = dropout_model
 
     model = model.to(device)
 
