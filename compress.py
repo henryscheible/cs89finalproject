@@ -78,7 +78,7 @@ def main(args):
     eval_model(model, f"Model with {k}-Rank Approximation @ Inference")
 
     # TO DO: The model weights here are NaN
-    model_B_file = torch.load("./models/nlayers=3_k=1.pt", map_location=torch.device('cpu'))
+    model_B_file = torch.load("./models/nlayers=3_k=16.pt", map_location=torch.device('cpu'))
     # print(model_B_file)
     
 
