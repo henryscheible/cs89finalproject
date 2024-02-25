@@ -294,9 +294,10 @@ def main(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
+    defaultdevice = "cuda:0" if torch.cuda.is_available() else "cpu"
 
     parser.add_argument('--data-aug', type=int, default=1)
-    parser.add_argument('--device', type=str, default="cuda:0")
+    parser.add_argument('--device', type=str, default=defaultdevice)
     parser.add_argument('--epochs', type=int, default=25)
     parser.add_argument('--batchsize', type=int, default=64)
     parser.add_argument('--lr', type=float, default=0.01)
