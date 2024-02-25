@@ -15,7 +15,7 @@ base_arg_matrices = [dict(zip(arg_options.keys(), values)) for values in product
 # for arg_matrix in base_arg_matrices:
 #    full_arg_matrices += [{**arg_matrix, "rank_constraint": r} for r in range(1, arg_matrix["nunits"], 10)]
 
-arg_matrix = filter(lambda: x["rank_constraint"] < x["nunits"])
+arg_matrix = list(filter(lambda x, : x["rank_constraint"] < x["nunits"], base_arg_matrices))
 results_list = []
 
 def train_one(args):
