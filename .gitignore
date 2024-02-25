@@ -167,3 +167,4 @@ models/
 *.austin
 *.pt
 *.csv
+*.DS_Store
