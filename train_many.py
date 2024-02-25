@@ -7,9 +7,14 @@ from train import main
 import pandas as pd
 import time
 import tqdm
+from preprocess_dataset import preprocess_dataset, ProcessedDataLoader
 
-arg_matrix = [dict(zip(arg_options.keys(), values)) for values in product(*arg_options.values())]
+base_arg_matrices = [dict(zip(arg_options.keys(), values)) for values in product(*arg_options.values())]
+# full_arg_matrices = []
+# for arg_matrix in base_arg_matrices:
+#    full_arg_matrices += [{**arg_matrix, "rank_constraint": r} for r in range(1, arg_matrix["nunits"], 10)]
 
+arg_matrix = base_arg_matrices
 results_list = []
 
 def train_one(args):
@@ -23,7 +28,12 @@ def train_one(args):
 
 
 if __name__ == "__main__":
-    with Pool(10) as p:
+    for args in tqdm.tqdm(arg_matrix):
+        args["train_dataset_path"] = "./processed_train_dataset.pt"
+        args["val_dataset_path"] = "./processed_val_dataset.pt"
+
+    print("Beginning Model Training")
+    with Pool(5) as p:
       r = list( \
          tqdm.tqdm(p.imap(train_one, zip(range(len(arg_matrix)), arg_matrix))) \
          )
