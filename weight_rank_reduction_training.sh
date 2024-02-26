@@ -160,4 +160,4 @@ python train.py --nunits=1024 --nlayers=3 --rank_constraint=1000 --checkpoint-pa
 python train.py --lr=.0001 --nlayers=3 --rank_constraint=1 --checkpoint-path=./models/no_regularization/data_aug/nunits=256/nlayers=3_k=1_lr=.0001.pt --device=cuda:0 # .211 val acc
 python train.py --lr=.0001 --nunits=1024 --nlayers=3 --rank_constraint=1 --checkpoint-path=./models/no_regularization/data_aug/nunits=1024/nlayers=3_k=1_lr=.0001.pt.pt --device=cuda:0 # .210 val acc
 python train.py --lr=.0001 --nlayers=3 --rank_constraint=1 --checkpoint-path=./models/no_regularization/no_data_aug/nunits=256/nlayers=3_k=1_lr=.0001.pt --device=cuda:0 --data-aug=0 # .208 val acc
-python train.py --lr=.0001 --nunits=1024 --nlayers=3 --rank_constraint=1 --checkpoint-path=./models/no_regularization/no_data_aug/nunits=1024/nlayers=3_k=1_lr=.0001.pt --device=cuda:1 --data-aug=0 # .211 val acc
+python train.py --lr=.0001 --nunits=1024 --nlayers=3 --rank_constraint=1 --checkpoint-path=./models/no_regularization/no_data_aug/nunits=1024/nlayers=3_k=1_lr=.0001.pt --device=cuda:1 --data-aug=0 # .211 val acc``

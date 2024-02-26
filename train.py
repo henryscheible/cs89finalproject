@@ -58,6 +58,7 @@ def validate(model, device, val_loader, criterion):
     with torch.no_grad():
         for data, target in val_loader:
             data, target = data.to(device).view(data.size(0), -1), target.to(device)
+            model.to(device)
 
             # compute the output
             output = model(data)
