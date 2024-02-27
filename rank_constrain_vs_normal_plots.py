@@ -4,6 +4,7 @@ from torch import nn, optim
 from torch.utils.data import DataLoader
 from torchvision import transforms, datasets
 import numpy as np
+import pandas as pd
 import random
 import copy
 import math
@@ -11,7 +12,6 @@ import matplotlib.pyplot as plt
 import argparse
 from collections import OrderedDict
 from tqdm import tqdm
-import json
 from preprocess_dataset import ProcessedDataLoader
 import argparse
 import subprocess
@@ -90,15 +90,21 @@ def main(args):
     print(rank_constraints.shape)
     print(val_accs.shape)
 
-    output = {
-        "rank_constraints": rank_constraints.tolist(),
-        "val_accs": val_accs.tolist(),
-        "nunits": nunits,
-        "data_aug": data_aug
-    }
+    normal_df = pd.read_csv("../nunits_exp/results.csv")
+    normal_df = normal_df.loc[normal_df["nunits"] <= nunits]
 
-    with open(f'./figures/Rank_Reduced_Training_nunits={nunits}_dataaug={bool(data_aug)}.csv', "w") as f:
-        json.dump(output, f)
+
+    plt.figure(figsize=(10, 6))
+    plt.scatter(rank_constraints, val_accs, color='blue', s=50)
+    plt.title(f'Test Accuracies Vs Rank: Hidden Units={nunits}, Data Augmentation={bool(data_aug)}')
+    plt.xlabel('Rank')
+    plt.axvline(x=50, color='red', linestyle='--', linewidth=2)
+    plt.ylabel('Accuracy')
+    plt.grid(True)
+
+    plt.savefig(f'./figures/Rank_Reduced_Training_nunits={nunits}_dataaug={bool(data_aug)}_compared.png')
+    plt.show()
+
 
 if __name__ == "__main__":
 
