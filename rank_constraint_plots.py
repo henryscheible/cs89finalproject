@@ -97,7 +97,7 @@ def main(args):
         "data_aug": data_aug
     }
 
-    with open(f'./figures/Rank_Reduced_Training_nunits={nunits}_dataaug={bool(data_aug)}.csv', "w") as f:
+    with open(f'./figures/Rank_Reduced_Training_nunits={nunits}_dataaug={bool(data_aug)}.json', "w") as f:
         json.dump(output, f)
 
 if __name__ == "__main__":
