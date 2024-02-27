@@ -4,7 +4,7 @@ arg_options = {
         "datadir": ["datasets"],
         "nchannels": [3],
         "nclasses": [10],
-        "nunits": range(1, 15, 2) + range(15, 50, 5) + range(50, 100, 10) + range(100, 1000, 50),
+        "nunits": list(range(1, 15, 2)) + list(range(15, 50, 5)) + list(range(50, 100, 10)) + list(range(100, 1000, 50)),
         "lr": [0.01],
         "mt": [0.9],
         "batchsize": [256],
