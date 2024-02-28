@@ -78,7 +78,7 @@ def main(args):
 
     eval_model(model, f"Model with {k}-Rank Approximation @ Inference")
     print(f"Total Parameters for Truncated Model: {sum([p.numel() for p in weights.values()])}")
-
+    
 
 
     model_B_file = torch.load("./models/nlayers=3_k=16.pt", map_location=torch.device('cpu'))['model state']
