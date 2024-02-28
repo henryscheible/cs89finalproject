@@ -6,7 +6,7 @@ from train import make_model, make_rank_k_model, validate, load_cifar10_data
 import random
 from torch.utils.data import DataLoader
 
-device = 'gpu' if torch.cuda.is_available() else 'cpu'
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 def view_weights(weights):
     for k, v in weights.items():
@@ -61,6 +61,17 @@ def main(args):
 
     model_file = torch.load(checkpoint_path, map_location="cuda" if torch.cuda.is_available() else "cpu")
     weights = model_file['model']
+    if "layer 0.weight" in weights.keys():
+        weights = {
+            "fc1.weight": weights["layer 0.weight"], 
+            "fc1.bias": weights["layer 0.bias"], 
+            "fc2.weight": weights["layer 2.weight"],
+            "fc2.bias": weights["layer 2.bias"], 
+            "fc3.weight": weights["layer 4.weight"], 
+            "fc3.bias": weights["layer 4.bias"], 
+            "classification.weight": weights["layer 6.weight"], 
+            "classification.bias": weights["layer 6.bias"]
+        }
 
     nchannels = model_file['args']['nchannels']
     nunits = model_file['args']['nunits']

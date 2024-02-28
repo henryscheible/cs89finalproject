@@ -2,6 +2,7 @@ name: cs89finalproject
 channels:
   - pytorch
   - conda-forge
+  - nvidia
 dependencies:
   - pytorch::pytorch=2.2.1
   - torchvision
@@ -11,4 +12,5 @@ dependencies:
   - matplotlib
   - pandas
   - tqdm
+  - pytorch-cuda=12.1
 
