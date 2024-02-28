@@ -56,10 +56,10 @@ def eval_model(model, model_name):
 
 
 def main(args):
-    checkpoint_path = "./models/" + args.checkpoint_path
+    checkpoint_path = args.checkpoint_path
     k = args.rank
 
-    model_file = torch.load(checkpoint_path)
+    model_file = torch.load(checkpoint_path, map_location="cuda" if torch.cuda.is_available() else "cpu")
     weights = model_file['model']
 
     nchannels = model_file['args']['nchannels']
@@ -76,14 +76,14 @@ def main(args):
     # view_weights(weights)
     
 
-    eval_model(model, f"Model with {k}-Rank Approximation @ Inference")
+    _, val_acc, _, _ = eval_model(model, f"Model with {k}-Rank Approximation @ Inference")
     print(f"Total Parameters for Truncated Model: {sum([p.numel() for p in weights.values()])}")
     
 
 
-    model_B_file = torch.load("./models/nlayers=3_k=16.pt", map_location=torch.device('cpu'))['model state']
-    print(f"Total Parameters for train rank-constrained Model: {sum([p.numel() for p in model_B_file.values()])}")
-
+    # model_B_file = torch.load("./models/nlayers=3_k=16.pt", map_location=torch.device('cpu'))['model state']
+    # print(f"Total Parameters for train rank-constrained Model: {sum([p.numel() for p in model_B_file.values()])}")
+    return val_acc
     
 
 if __name__ == '__main__':
